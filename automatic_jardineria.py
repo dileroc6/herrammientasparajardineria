@@ -16,7 +16,9 @@ def extraer_articulo(url):
 
     titulo = soup.find("h1").text if soup.find("h1") else "Artículo sin título"
     contenido = " ".join([p.text for p in soup.find_all("p")])
-    imagen = soup.find("img")["src"] if soup.find("img") else None
+
+    imagen_tag = soup.find("img")
+    imagen = imagen_tag["src"] if imagen_tag and "src" in imagen_tag.attrs else None
 
     return {"titulo": titulo, "contenido": contenido, "imagen": imagen}
 

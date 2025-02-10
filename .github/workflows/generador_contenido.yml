@@ -29,4 +29,4 @@ jobs:
           WORDPRESS_URL: ${{ secrets.WORDPRESS_URL }}
           WP_USER: ${{ secrets.WP_USER }}
           WP_PASSWORD: ${{ secrets.WP_PASSWORD }}
-        run: python script.py
+        run: python sautomatic_jardineria.py

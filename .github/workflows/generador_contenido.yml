@@ -1,0 +1,32 @@
+name: Publicar en WordPress
+
+on:
+  push:
+    branches:
+      - main
+  schedule:
+    - cron: '0 0 * * *'  # Ejecuta automáticamente a medianoche cada día
+
+jobs:
+  publicar:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout del repositorio
+        uses: actions/checkout@v3
+      
+      - name: Configurar Python
+        uses: actions/setup-python@v3
+        with:
+          python-version: '3.9'
+      
+      - name: Instalar dependencias
+        run: |
+          pip install requests openai beautifulsoup4
+   
+      - name: Ejecutar el script de publicación
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          WORDPRESS_URL: ${{ secrets.WORDPRESS_URL }}
+          WP_USER: ${{ secrets.WP_USER }}
+          WP_PASSWORD: ${{ secrets.WP_PASSWORD }}
+        run: python script.py

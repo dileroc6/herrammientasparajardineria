@@ -70,8 +70,10 @@ def generar_contenido(titulo, contenido):
     nuevo_contenido = "\n".join(lineas[1:]).strip()  # Resto como contenido
 
     # Validar si la primera línea es un título correcto
-    if len(nuevo_titulo) > 80 or " " not in nuevo_titulo:
-        nuevo_titulo = titulo  # Si es demasiado largo o parece inválido, usar el título original
+    if len(nuevo_titulo) < 10 or not any(c.isalpha() for c in nuevo_titulo):  
+        log("⚠️ El título generado no es válido, usando el original.")  
+        nuevo_titulo = titulo  
+        log(f"🎯 Título final a publicar: {nuevo_titulo}")
     else:
         log(f"✅ Nuevo título generado: {nuevo_titulo}")
 

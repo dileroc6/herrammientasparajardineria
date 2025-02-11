@@ -3,7 +3,7 @@ import openai
 from bs4 import BeautifulSoup
 import os
 
-# Archivo de logs
+# Archivo de logss
 LOG_FILE = "log.txt"
 
 def log(mensaje):

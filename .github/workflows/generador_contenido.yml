@@ -30,3 +30,9 @@ jobs:
           WP_USER: ${{ secrets.WP_USER }}
           WP_PASSWORD: ${{ secrets.WP_PASSWORD }}
         run: python automatic_jardineria.py
+
+      - name: Subir log como artefacto
+        uses: actions/upload-artifact@v3
+        with:
+          name: logs-publicacion
+          path: log.txt

@@ -64,7 +64,7 @@ def generar_contenido(titulo, contenido):
     Finaliza el artículo con un comentario propio que aporte valor, reflexión o contexto adicional sobre el tema.
     El objetivo es crear un contenido útil, bien estructurado y optimizado para SEO, sin desviarse del material de referencia, para mejorar el posicionamiento del blog y facilitar la aprobación en Google AdSense.
     """
-    
+
     response = client.chat.completions.create(
         model="gpt-4",
         messages=[
@@ -148,24 +148,3 @@ for url in urls:
         publicar_en_wordpress(nuevo_titulo, nuevo_contenido, imagen_id)
 
 log("✅ Publicación finalizada.")
-
-
-
-
-
-
-
-    prompt = f"""
-    Genera un artículo original y optimizado para SEO sobre {titulo}, utilizando únicamente la información proporcionada en {contenido}.
-
-    El artículo está destinado a un blog especializado en herramientas de jardinería y debe estar optimizado para buscadores. Para lograrlo:
-
-    Usa solo la información del contenido de referencia, sin agregar datos externos.
-    Redacta un texto estructurado con encabezados jerárquicos (H1, H2, H3) para mejorar la legibilidad y el SEO.
-    Aplica técnicas de optimización SEO, incluyendo el uso natural de palabras clave relevantes.
-    Utiliza listas, negritas y enlaces internos para mejorar la experiencia del usuario y la indexación en buscadores.
-    Finaliza el artículo con un comentario propio que aporte valor, reflexión o contexto adicional sobre el tema.
-    El objetivo es crear un contenido útil, bien estructurado y optimizado para SEO, sin desviarse del material de referencia, para mejorar el posicionamiento del blog y facilitar la aprobación en Google AdSense.
-    """
-    
-  

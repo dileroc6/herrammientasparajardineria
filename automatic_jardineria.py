@@ -54,12 +54,6 @@ def limpiar_y_formatear_titulo(titulo):
     titulo_limpio = re.sub(r'^(H\d+:)\s*', '', titulo).strip()
     return titulo_limpio.capitalize()
 
-import re
-
-import re
-
-dimport re
-
 def limpiar_y_formatear_contenido(contenido):
     """Convierte Markdown en HTML correctamente, asegurando formato adecuado y capitalización correcta en títulos."""
     

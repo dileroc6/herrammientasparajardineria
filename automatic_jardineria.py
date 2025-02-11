@@ -37,7 +37,8 @@ def extraer_articulo(url):
     response = requests.get(url)
     soup = BeautifulSoup(response.text, "html.parser")
 
-    titulo = soup.find("h1").text if soup.find("h1") else "Artículo sin título"
+    titulo = soup.find("h1").text.strip() if soup.find("h1") else "Artículo sin título"
+    titulo = limpiar_y_formatear_titulo(titulo)
     contenido = " ".join([p.text for p in soup.find_all("p")])
     imagen_tag = soup.find("img")
     imagen = imagen_tag["src"] if imagen_tag and "src" in imagen_tag.attrs else None
@@ -48,14 +49,16 @@ def extraer_articulo(url):
 
     return {"titulo": titulo, "contenido": contenido, "imagen": imagen}
 
+def limpiar_y_formatear_titulo(titulo):
+    """ Elimina los prefijos como 'H1:', 'H2:' y capitaliza correctamente el título. """
+    titulo_limpio = re.sub(r'^(H\d+:)\s*', '', titulo).strip()
+    return titulo_limpio.capitalize()
+
 def limpiar_y_formatear_contenido(contenido):
-    """Convierte saltos de línea en párrafos, formatea los títulos, enlaces y negritas correctamente."""
+    """Convierte saltos de línea en párrafos y formatea correctamente los títulos y enlaces."""
     
-    # Convertir encabezados de Markdown en HTML correctamente (sin el símbolo #)
+    # Convertir encabezados de Markdown en HTML correctamente
     contenido = re.sub(r'^\s*(#{1,6})\s*(.*?)\s*$', lambda m: f"<h{len(m.group(1))}>{m.group(2)}</h{len(m.group(1))}>", contenido, flags=re.MULTILINE)
-    
-    # Convertir negritas de Markdown (**negrita**) en HTML <strong>
-    contenido = re.sub(r'\*\*(.*?)\*\*', r'<strong>\1</strong>', contenido)
     
     # Convertir saltos de línea dobles en párrafos
     contenido = re.sub(r'\n\n+', r'</p><p>', contenido)  # Divide párrafos correctamente
@@ -72,17 +75,14 @@ def generar_contenido(titulo, contenido):
 
     client = openai.OpenAI(api_key=OPENAI_API_KEY)
     prompt = f"""
-    Genera un artículo original y optimizado para SEO sobre {titulo}, utilizando únicamente la información proporcionada en {contenido}.
+    Genera un artículo original y optimizado para SEO sobre "{titulo}", utilizando únicamente la información proporcionada en el contenido de referencia.
 
-    El artículo está destinado a un blog especializado en herramientas de jardinería y debe estar optimizado para buscadores. Para lograrlo:
-
-    - Usa solo la información del contenido de referencia, sin agregar datos externos.
-    - Redacta un texto estructurado con encabezados jerárquicos (H1, H2, H3) para mejorar la legibilidad y el SEO.
+    Requisitos:
+    - Usa solo la información del contenido original, sin agregar datos externos.
+    - Estructura el texto con encabezados jerárquicos (H1, H2, H3) para mejorar la legibilidad y el SEO.
     - Aplica técnicas de optimización SEO, incluyendo el uso natural de palabras clave relevantes.
-    - Utiliza listas, negritas y enlaces internos para mejorar la experiencia del usuario y la indexación en buscadores.
-    - Finaliza el artículo con un comentario propio que aporte valor, reflexión o contexto adicional sobre el tema.
-    - El objetivo es crear un contenido útil, bien estructurado y optimizado para SEO, sin desviarse del material de referencia, para mejorar el posicionamiento del blog y facilitar la aprobación en Google AdSense.
-    - Incluye en lo posible la fuente original del contenido.
+    - Utiliza listas, negritas y enlaces internos para mejorar la experiencia del usuario.
+    - Finaliza el artículo con un comentario propio que aporte valor adicional sobre el tema.
     """
 
     response = client.chat.completions.create(
@@ -115,25 +115,6 @@ def generar_contenido(titulo, contenido):
     log(f"📝 Contenido generado: {nuevo_contenido[:100]}...")  # Muestra los primeros 100 caracteres
 
     return nuevo_titulo, nuevo_contenido
-
-def limpiar_y_formatear_contenido(contenido):
-    """Convierte saltos de línea en párrafos, formatea los títulos, enlaces y negritas correctamente."""
-    
-    # Convertir encabezados de Markdown en HTML correctamente (sin el símbolo #)
-    contenido = re.sub(r'^\s*(#{1,6})\s*(.*?)\s*$', lambda m: f"<h{len(m.group(1))}>{m.group(2)}</h{len(m.group(1))}>", contenido, flags=re.MULTILINE)
-    
-    # Convertir negritas de Markdown (**negrita**) en HTML <strong>
-    contenido = re.sub(r'\*\*(.*?)\*\*', r'<strong>\1</strong>', contenido)
-    
-    # Convertir saltos de línea dobles en párrafos
-    contenido = re.sub(r'\n\n+', r'</p><p>', contenido)  # Divide párrafos correctamente
-    contenido = f"<p>{contenido}</p>"  # Envuelve todo en <p> inicial y final
-    
-    # Formatear enlaces si están en formato [Texto](URL)
-    contenido = re.sub(r'\[(.*?)\]\((https?://.*?)\)', r'<a href="\2">\1</a>', contenido)
-
-    return contenido
-
 
 def subir_imagen_a_wordpress(img_url):
     """ Descarga y sube una imagen a WordPress, devolviendo su ID. """
@@ -169,7 +150,7 @@ def publicar_en_wordpress(titulo, contenido, imagen_id=None):
 
     headers = get_auth_headers()
     data = {
-        "title": titulo,  # Ahora usa el título corregido
+        "title": titulo,
         "content": contenido,
         "status": "publish",
         "categories": [17],  # ID de la categoría 'cortasetos'

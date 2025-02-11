@@ -64,9 +64,9 @@ def generar_contenido(titulo, contenido):
         client = openai.OpenAI(api_key=OPENAI_API_KEY)
         prompt = f"""
         Genera un artículo optimizado para SEO sobre "{titulo}" usando la información proporcionada.
-        - Usa etiquetas HTML, encabezados jerárquicos (H2, H3, etc.) (NO incluyas el H1, ya que el título será un H1 aparte).
+        - NO incluyas el título en el contenido, solo usa encabezados H2 en adelante.
         - Aplica técnicas SEO y palabras clave relevantes.
-        - Incluye listas, negritas y enlaces internos.
+        - Usa listas, negritas y enlaces internos.
         - Concluye con un comentario propio de valor adicional.
         """
 
@@ -81,22 +81,20 @@ def generar_contenido(titulo, contenido):
         log("✅ Respuesta recibida de OpenAI.")
 
         resultado = response.choices[0].message.content.strip()
-        log(f"📜 Contenido generado: {resultado[:100]}...")  # Muestra solo los primeros 100 caracteres para evitar logs largos
+        log(f"📜 Contenido generado: {resultado[:100]}...")  # Muestra solo los primeros 100 caracteres
 
-        # Extraer el título sin incluirlo en el contenido
-        lineas = resultado.split("\n")
-        nuevo_titulo = limpiar_y_formatear_titulo(lineas[0])  # Asume que la primera línea es el título
-        nuevo_contenido = limpiar_y_formatear_contenido("\n".join(lineas[1:]))  # Resto del contenido sin el título
+        # Se asume que OpenAI ya no incluye el título, pero hacemos una limpieza por seguridad
+        nuevo_contenido = limpiar_y_formatear_contenido(resultado)
 
-        # Agregar el título como <h1> separado del contenido
-        nuevo_contenido = f"<h1>{nuevo_titulo}</h1>\n{nuevo_contenido}"
+        # Estructura final con <h1> para el título
+        contenido_final = f"<h1>{titulo}</h1>\n{nuevo_contenido}"
 
-        log(f"📝 Título final: {nuevo_titulo}")
-        return nuevo_titulo, nuevo_contenido
+        log(f"📝 Título final: {titulo}")
+        return titulo, contenido_final
 
     except Exception as e:
         log(f"❌ Error al generar contenido: {str(e)}")
-        return titulo, f"<h1>{titulo}</h1>\n{contenido}"  # Devuelve el contenido con un H1 si hay error
+        return titulo, f"<h1>{titulo}</h1>\n{contenido}"  # Devuelve el contenido original con su <h1> si hay error
 
 
 def subir_imagen_a_wordpress(img_url):

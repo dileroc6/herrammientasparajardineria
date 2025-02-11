@@ -12,7 +12,7 @@ def log(mensaje):
         f.write(mensaje + "\n")
     print(mensaje)
 
-# Configuración de WordPress
+# Configuración del WordPress
 WP_URL = os.getenv("WORDPRESS_URL")
 WP_USER = os.getenv("WP_USER")
 WP_PASSWORD = os.getenv("WP_PASSWORD")

@@ -63,8 +63,10 @@ def generar_contenido(titulo, contenido):
         client = openai.OpenAI(api_key=OPENAI_API_KEY)
         prompt = f"""
         Genera un artículo optimizado para SEO sobre "{titulo}" usando la información proporcionada.
+        - La primera linea debe ser el titulo y despues de un salto de linea debe ir el contenido
         - Usa etiquetas HTML para todos los titulos H1, H2 y/o H3, etc.)
         - NO incluyas el título en el contenido
+        - Los titulos h1, h2 y h3 deben iniciar con mayuscula y las demas letas deben ser minusculas
         - Aplica técnicas SEO y palabras clave relevantes.
         - Incluye listas, negritas y enlaces internos.
         - Concluye con un comentario propio de valor adicional.
@@ -93,17 +95,18 @@ def generar_contenido(titulo, contenido):
 
     except Exception as e:
         log(f"❌ Error al generar contenido: {str(e)}")
-        return titulo, f"<h1>{titulo}</h1>\n{contenido}"  # Devuelve el contenido con un H1 si hay error
+        return titulo, f"{titulo}\n{contenido}"  # Devuelve el contenido con un H1 si hay error
 
 def publicar_en_wordpress(titulo, contenido, imagen_id=None):
-    """Publica el artículo en WordPress con su título correcto."""
+    """Publica el artículo en WordPress con su título correcto y asignado a la categoría con ID 17."""
     log(f"🚀 Publicando en WordPress: {titulo}")
 
     headers = get_auth_headers()
     data = {
         "title": titulo,  # Asegurar que el título se usa correctamente
         "content": contenido,
-        "status": "publish"
+        "status": "publish",
+        "categories": [17]  # Asigna la entrada a la categoría con ID 17
     }
     if imagen_id:
         data["featured_media"] = imagen_id

@@ -55,7 +55,7 @@ def limpiar_y_formatear_contenido(contenido):
     contenido = re.sub(r'\[(.*?)\]\((https?://.*?)\)', r'<a href="\2">\1</a>', contenido)  # Enlaces
 
     # Capitalizar solo la primera letra de títulos H2 y H3
-    contenido = re.sub(r'<(h2|h3)>(.*?)</\1>', 
+    contenido = re.sub(r'<(h1|h2|h3)>(.*?)</\1>', 
                        lambda match: f"<{match.group(1)}>{match.group(2).capitalize()}</{match.group(1)}>", 
                        contenido)
 

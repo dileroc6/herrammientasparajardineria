@@ -24,11 +24,14 @@ def extraer_articulo(url):
 
 def generar_contenido(titulo, contenido):
     """ Usa ChatGPT para generar un artículo único y optimizado. """
-    openai.api_key = OPENAI_API_KEY
+    client = openai.OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
     prompt = f"Escribe un artículo SEO optimizado sobre: {titulo}. Usa información valiosa basada en este contenido: {contenido}"
-    response = openai.ChatCompletion.create(
+    response = client.chat.completions.create(
         model="gpt-4",
-        messages=[{"role": "user", "content": prompt}]
+        messages=[
+                {"role": "system", "content": "Eres un asistente experto en redacción de artículos SEO y conocedor de todo lo relacionado con perros."},
+                {"role": "user", "content": prompt}
+        ]
     )
     return response["choices"][0]["message"]["content"]
 

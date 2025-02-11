@@ -52,18 +52,7 @@ def generar_contenido(titulo, contenido):
     log(f"🤖 Generando contenido para: {titulo}")
 
     client = openai.OpenAI(api_key=OPENAI_API_KEY)
-    prompt = f"""
-    Genera un artículo original y optimizado para SEO sobre {titulo}, utilizando únicamente la información proporcionada en {contenido}.
-
-    El artículo está destinado a un blog especializado en herramientas de jardinería y debe estar optimizado para buscadores. Para lograrlo:
-
-    Usa solo la información del contenido de referencia, sin agregar datos externos.
-    Redacta un texto estructurado con encabezados jerárquicos (H1, H2, H3) para mejorar la legibilidad y el SEO.
-    Aplica técnicas de optimización SEO, incluyendo el uso natural de palabras clave relevantes.
-    Utiliza listas, negritas y enlaces internos para mejorar la experiencia del usuario y la indexación en buscadores.
-    Finaliza el artículo con un comentario propio que aporte valor, reflexión o contexto adicional sobre el tema.
-    El objetivo es crear un contenido útil, bien estructurado y optimizado para SEO, sin desviarse del material de referencia, para mejorar el posicionamiento del blog y facilitar la aprobación en Google AdSense.
-    """
+    prompt = f"Escribe un artículo SEO optimizado sobre {titulo}. Usa información valiosa basada en este contenido: {contenido}."
 
     response = client.chat.completions.create(
         model="gpt-4",
@@ -74,18 +63,19 @@ def generar_contenido(titulo, contenido):
     )
 
     resultado = response.choices[0].message.content.strip()
-    
-    # Extraer título generado automáticamente por OpenAI
-    lineas = resultado.split("\n")
-    if lineas[0].lower().startswith("título:"):
-        nuevo_titulo = lineas[0].replace("Título:", "").strip()
-        nuevo_contenido = "\n".join(lineas[1:]).strip()  # Elimina la línea del título del contenido
-    else:
-        nuevo_titulo = titulo  # Si no se generó un nuevo título, usar el original
-        nuevo_contenido = resultado
 
-    log(f"📝 Nuevo título generado: {nuevo_titulo}")
-    log(f"📝 Contenido generado: {nuevo_contenido[:100]}...")  # Solo muestra los primeros 100 caracteres
+    # Separar el título del contenido
+    lineas = resultado.split("\n")
+    nuevo_titulo = lineas[0].strip()  # Primera línea como título
+    nuevo_contenido = "\n".join(lineas[1:]).strip()  # Resto como contenido
+
+    # Validar si la primera línea es un título correcto
+    if len(nuevo_titulo) > 80 or " " not in nuevo_titulo:
+        nuevo_titulo = titulo  # Si es demasiado largo o parece inválido, usar el título original
+    else:
+        log(f"✅ Nuevo título generado: {nuevo_titulo}")
+
+    log(f"📝 Contenido generado: {nuevo_contenido[:100]}...")  # Muestra los primeros 100 caracteres
 
     return nuevo_titulo, nuevo_contenido
 

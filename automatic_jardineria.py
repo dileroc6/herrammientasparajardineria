@@ -67,13 +67,16 @@ def subir_imagen_a_wordpress(img_data):
     encoded_credentials = base64.b64encode(credentials.encode()).decode()
 
     headers = {
-        "Authorization": f"Basic {encoded_credentials}",
-        "Content-Disposition": "attachment; filename=imagen.jpg"
+        "Authorization": f"Basic {encoded_credentials}"
+    }
+    
+    files = {
+        "file": ("imagen.jpg", img_data, "image/jpeg")
     }
     
     response = requests.post(f"{WP_URL}/wp-json/wp/v2/media",
                              headers=headers,
-                             files={"file": ("imagen.jpg", img_data, "image/jpeg")})
+                             files=files)
 
     log(f"📸 Respuesta de WordPress: {response.status_code} - {response.text}")
     if response.status_code == 201:

@@ -56,7 +56,7 @@ def limpiar_y_formatear_contenido(contenido):
     contenido = re.sub(r'\[(.*?)\]\((https?://.*?)\)', r'<a href="\2">\1</a>', contenido)  # Enlaces
     return contenido
 
-def generar_contenido(titulo, contenido):
+ddef generar_contenido(titulo, contenido):
     """Usa ChatGPT para generar un artículo único y optimizado con logs detallados."""
     log(f"🤖 Iniciando generación de contenido para: {titulo}")
 
@@ -64,7 +64,7 @@ def generar_contenido(titulo, contenido):
         client = openai.OpenAI(api_key=OPENAI_API_KEY)
         prompt = f"""
         Genera un artículo optimizado para SEO sobre "{titulo}" usando la información proporcionada.
-        - Usa etiquetas HTML, encabezados jerárquicos (H1, H2, H3) (NO uses prefijos como "H1:", "H2:", etc.).
+        - Usa etiquetas HTML, encabezados jerárquicos (H2, H3, etc.) (NO incluyas el H1, ya que el título será un H1 aparte).
         - Aplica técnicas SEO y palabras clave relevantes.
         - Incluye listas, negritas y enlaces internos.
         - Concluye con un comentario propio de valor adicional.
@@ -81,17 +81,23 @@ def generar_contenido(titulo, contenido):
         log("✅ Respuesta recibida de OpenAI.")
 
         resultado = response.choices[0].message.content.strip()
-        log(f"📜 Contenido generado: {resultado[:100]}...")  # Muestra solo los primeros 100 caracteres para evitar logs muy largos
+        log(f"📜 Contenido generado: {resultado[:100]}...")  # Muestra solo los primeros 100 caracteres para evitar logs largos
 
-        nuevo_titulo = limpiar_y_formatear_titulo(resultado.split("\n")[0])
-        nuevo_contenido = limpiar_y_formatear_contenido("\n".join(resultado.split("\n")[1:]))
+        # Extraer el título sin incluirlo en el contenido
+        lineas = resultado.split("\n")
+        nuevo_titulo = limpiar_y_formatear_titulo(lineas[0])  # Asume que la primera línea es el título
+        nuevo_contenido = limpiar_y_formatear_contenido("\n".join(lineas[1:]))  # Resto del contenido sin el título
+
+        # Agregar el título como <h1> separado del contenido
+        nuevo_contenido = f"<h1>{nuevo_titulo}</h1>\n{nuevo_contenido}"
 
         log(f"📝 Título final: {nuevo_titulo}")
         return nuevo_titulo, nuevo_contenido
 
     except Exception as e:
         log(f"❌ Error al generar contenido: {str(e)}")
-        return titulo, contenido  # Devuelve el contenido original en caso de error
+        return titulo, f"<h1>{titulo}</h1>\n{contenido}"  # Devuelve el contenido con un H1 si hay error
+
 
 def subir_imagen_a_wordpress(img_url):
     """ Descarga y sube una imagen a WordPress. """

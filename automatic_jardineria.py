@@ -2,6 +2,7 @@ import requests
 import openai
 from bs4 import BeautifulSoup
 import os
+import base64
 
 # Archivos de logss
 LOG_FILE = "log.txt"
@@ -57,12 +58,17 @@ def generar_contenido(titulo, contenido):
 
     return resultado
 
-def subir_imagen_wp(imagen_url):
-    """ Sube la imagen a WordPress y devuelve su ID. """
-    log(f"📤 Subiendo imagen: {imagen_url}")
+def subir_imagen_a_wordpress(img_data):
+    """Sube una imagen a WordPress y devuelve su ID."""
+    log("📸 Subiendo imagen a WordPress...")
+    
+    # Codificar credenciales en Base64
+    credentials = f"{WP_USER}:{WP_PASSWORD}"
+    encoded_credentials = base64.b64encode(credentials.encode()).decode()
 
-    img_data = requests.get(imagen_url).content
-    headers = {"Authorization": f"Basic {WP_USER}:{WP_PASSWORD}"}
+    headers = {
+        "Authorization": f"Basic {encoded_credentials}"
+    }
     
     response = requests.post(f"{WP_URL}/wp-json/wp/v2/media",
                              headers=headers,

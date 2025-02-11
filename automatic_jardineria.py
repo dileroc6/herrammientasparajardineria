@@ -48,11 +48,23 @@ def extraer_articulo(url):
 
     return {"titulo": titulo, "contenido": contenido, "imagen": imagen}
 
-def limpiar_y_formatear_titulo(titulo):
-    """ Elimina los prefijos como 'H1:', 'H2:' y capitaliza correctamente el título. """
-    # Eliminar cualquier prefijo tipo H1:, H2:, etc.
-    titulo_limpio = re.sub(r'^(H\d+:)\s*', '', titulo).strip()
-    return titulo_limpio.capitalize()
+def limpiar_y_formatear_contenido(contenido):
+    """Convierte saltos de línea en párrafos, formatea los títulos, enlaces y negritas correctamente."""
+    
+    # Convertir encabezados de Markdown en HTML correctamente (sin el símbolo #)
+    contenido = re.sub(r'^\s*(#{1,6})\s*(.*?)\s*$', lambda m: f"<h{len(m.group(1))}>{m.group(2)}</h{len(m.group(1))}>", contenido, flags=re.MULTILINE)
+    
+    # Convertir negritas de Markdown (**negrita**) en HTML <strong>
+    contenido = re.sub(r'\*\*(.*?)\*\*', r'<strong>\1</strong>', contenido)
+    
+    # Convertir saltos de línea dobles en párrafos
+    contenido = re.sub(r'\n\n+', r'</p><p>', contenido)  # Divide párrafos correctamente
+    contenido = f"<p>{contenido}</p>"  # Envuelve todo en <p> inicial y final
+    
+    # Formatear enlaces si están en formato [Texto](URL)
+    contenido = re.sub(r'\[(.*?)\]\((https?://.*?)\)', r'<a href="\2">\1</a>', contenido)
+
+    return contenido
 
 def generar_contenido(titulo, contenido):
     """ Usa ChatGPT para generar un artículo único y optimizado. """

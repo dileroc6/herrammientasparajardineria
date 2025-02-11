@@ -41,7 +41,7 @@ def extraer_articulo(url):
     imagen_tag = soup.find("img")
     imagen = imagen_tag["src"] if imagen_tag and "src" in imagen_tag.attrs else None
 
-    log(f"✅ Título: {titulo}")
+    log(f"✅ Título original: {titulo}")
     log(f"📝 Contenido extraído: {contenido[:100]}...")  # Solo muestra los primeros 100 caracteres
     log(f"🖼️ Imagen encontrada: {imagen}")
 
@@ -52,20 +52,42 @@ def generar_contenido(titulo, contenido):
     log(f"🤖 Generando contenido para: {titulo}")
 
     client = openai.OpenAI(api_key=OPENAI_API_KEY)
-    prompt = f"Escribe un artículo SEO optimizado sobre: {titulo}. Usa información valiosa basada en este contenido: {contenido}"
+    prompt = f"""
+    Genera un artículo original y optimizado para SEO sobre {titulo}, utilizando únicamente la información proporcionada en {contenido}.
+
+    El artículo está destinado a un blog especializado en herramientas de jardinería y debe estar optimizado para buscadores. Para lograrlo:
+
+    Usa solo la información del contenido de referencia, sin agregar datos externos.
+    Redacta un texto estructurado con encabezados jerárquicos (H1, H2, H3) para mejorar la legibilidad y el SEO.
+    Aplica técnicas de optimización SEO, incluyendo el uso natural de palabras clave relevantes.
+    Utiliza listas, negritas y enlaces internos para mejorar la experiencia del usuario y la indexación en buscadores.
+    Finaliza el artículo con un comentario propio que aporte valor, reflexión o contexto adicional sobre el tema.
+    El objetivo es crear un contenido útil, bien estructurado y optimizado para SEO, sin desviarse del material de referencia, para mejorar el posicionamiento del blog y facilitar la aprobación en Google AdSense.
+    """
     
     response = client.chat.completions.create(
         model="gpt-4",
         messages=[
-                {"role": "system", "content": "Eres un asistente experto en redacción de artículos SEO y conocedor de todo lo relacionado con perros."},
-                {"role": "user", "content": prompt}
+            {"role": "system", "content": "Eres un asistente experto en redacción de artículos SEO."},
+            {"role": "user", "content": prompt}
         ]
     )
 
-    resultado = response.choices[0].message.content
-    log(f"📝 Contenido generado: {resultado[:100]}...")  # Solo muestra los primeros 100 caracteres
+    resultado = response.choices[0].message.content.strip()
+    
+    # Extraer título generado automáticamente por OpenAI
+    lineas = resultado.split("\n")
+    if lineas[0].lower().startswith("título:"):
+        nuevo_titulo = lineas[0].replace("Título:", "").strip()
+        nuevo_contenido = "\n".join(lineas[1:]).strip()  # Elimina la línea del título del contenido
+    else:
+        nuevo_titulo = titulo  # Si no se generó un nuevo título, usar el original
+        nuevo_contenido = resultado
 
-    return resultado
+    log(f"📝 Nuevo título generado: {nuevo_titulo}")
+    log(f"📝 Contenido generado: {nuevo_contenido[:100]}...")  # Solo muestra los primeros 100 caracteres
+
+    return nuevo_titulo, nuevo_contenido
 
 def subir_imagen_a_wordpress(img_url):
     """ Descarga y sube una imagen a WordPress, devolviendo su ID. """
@@ -101,7 +123,7 @@ def publicar_en_wordpress(titulo, contenido, imagen_id=None):
 
     headers = get_auth_headers()
     data = {
-        "title": titulo,
+        "title": titulo,  # Ahora usa el título corregido
         "content": contenido,
         "status": "publish",
         "categories": [17],  # ID de la categoría 'cortasetos'
@@ -121,8 +143,29 @@ with open("lista_enlaces.txt", "r") as file:
 for url in urls:
     datos = extraer_articulo(url)
     if datos:
-        nuevo_contenido = generar_contenido(datos["titulo"], datos["contenido"])
+        nuevo_titulo, nuevo_contenido = generar_contenido(datos["titulo"], datos["contenido"])
         imagen_id = subir_imagen_a_wordpress(datos["imagen"]) if datos["imagen"] else None
-        publicar_en_wordpress(datos["titulo"], nuevo_contenido, imagen_id)
+        publicar_en_wordpress(nuevo_titulo, nuevo_contenido, imagen_id)
 
 log("✅ Publicación finalizada.")
+
+
+
+
+
+
+
+    prompt = f"""
+    Genera un artículo original y optimizado para SEO sobre {titulo}, utilizando únicamente la información proporcionada en {contenido}.
+
+    El artículo está destinado a un blog especializado en herramientas de jardinería y debe estar optimizado para buscadores. Para lograrlo:
+
+    Usa solo la información del contenido de referencia, sin agregar datos externos.
+    Redacta un texto estructurado con encabezados jerárquicos (H1, H2, H3) para mejorar la legibilidad y el SEO.
+    Aplica técnicas de optimización SEO, incluyendo el uso natural de palabras clave relevantes.
+    Utiliza listas, negritas y enlaces internos para mejorar la experiencia del usuario y la indexación en buscadores.
+    Finaliza el artículo con un comentario propio que aporte valor, reflexión o contexto adicional sobre el tema.
+    El objetivo es crear un contenido útil, bien estructurado y optimizado para SEO, sin desviarse del material de referencia, para mejorar el posicionamiento del blog y facilitar la aprobación en Google AdSense.
+    """
+    
+  

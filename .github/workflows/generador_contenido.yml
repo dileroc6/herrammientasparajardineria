@@ -4,8 +4,8 @@ on:
   push:
     branches:
       - main
-  schedule:
-    - cron: '0 0 * * *'  # Ejecuta automáticamente a medianoche cada día
+  #schedule:
+  #  - cron: '0 0 * * *'  # Ejecuta automáticamente a medianoche cada día
 
 jobs:
   publicar:

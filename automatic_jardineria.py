@@ -54,7 +54,7 @@ def limpiar_y_formatear_contenido(contenido):
     contenido = re.sub(r'\n\n+', '</p><p>', contenido)  # Párrafos
     contenido = re.sub(r'\[(.*?)\]\((https?://.*?)\)', r'<a href="\2">\1</a>', contenido)  # Enlaces
 
-    # Capitalizar solo la primera letra de títulos H2 y H3
+    # Capitalizar solo la primera letra de títulos H1 H2 y H3
     contenido = re.sub(r'<(h1|h2|h3)>(.*?)</\1>', 
                        lambda match: f"<{match.group(1)}>{match.group(2).capitalize()}</{match.group(1)}>", 
                        contenido)
@@ -75,6 +75,7 @@ def generar_contenido(titulo, contenido):
         - Los titulos h1, h2 y h3 deben iniciar con mayuscula y las demas letas deben ser minusculas
         - Aplica técnicas SEO y palabras clave relevantes.
         - Incluye listas, negritas y enlaces internos.
+        - Incluye links a la fuente si es necesario.
         - Concluye con un comentario propio de valor adicional.
         """
 

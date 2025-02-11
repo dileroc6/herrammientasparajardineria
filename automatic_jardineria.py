@@ -63,7 +63,7 @@ def generar_contenido(titulo, contenido):
     client = openai.OpenAI(api_key=OPENAI_API_KEY)
     prompt = f"""
     Genera un artículo optimizado para SEO sobre "{titulo}" usando la información proporcionada.
-    - Usa encabezados jerárquicos (H1, H2, H3).
+    - Usa etiqutas html, encabezados jerárquicos (H1, H2, H3) (NO uses prefijos como "H1:", "H2:", etc.).
     - Aplica técnicas SEO y palabras clave relevantes.
     - Incluye listas, negritas y enlaces internos.
     - Concluye con un comentario propio de valor adicional.

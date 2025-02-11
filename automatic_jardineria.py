@@ -113,13 +113,27 @@ def subir_imagen_a_wordpress(img_url):
     return response.json().get("id") if response.status_code == 201 else None
 
 def publicar_en_wordpress(titulo, contenido, imagen_id=None):
-    """ Publica el artículo en WordPress. """
+    """Publica el artículo en WordPress con su título correcto."""
+    log(f"🚀 Publicando en WordPress: {titulo}")
+
     headers = get_auth_headers()
-    data = {"title": titulo, "content": contenido, "status": "publish"}
+    data = {
+        "title": titulo,  # Asegurar que el título se usa correctamente
+        "content": contenido,
+        "status": "publish"
+    }
     if imagen_id:
         data["featured_media"] = imagen_id
+
     response = requests.post(f"{WP_URL}/wp-json/wp/v2/posts", json=data, headers=headers)
+
+    if response.status_code == 201:
+        log(f"✅ Publicado con éxito: {titulo}")
+    else:
+        log(f"❌ Error al publicar: {response.text}")
+
     return response.json()
+
 
 with open("lista_enlaces.txt", "r") as file:
     urls = [line.strip() for line in file.readlines() if line.strip()]

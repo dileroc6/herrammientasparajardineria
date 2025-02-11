@@ -4,7 +4,7 @@ from bs4 import BeautifulSoup
 import os
 import base64
 
-# Archivos de logss
+# Archivo de logs
 LOG_FILE = "log.txt"
 
 def log(mensaje):
@@ -13,13 +13,22 @@ def log(mensaje):
         f.write(mensaje + "\n")
     print(mensaje)
 
-# Configuración del WordPress
+# Configuración de WordPress y OpenAI
 WP_URL = os.getenv("WORDPRESS_URL")
 WP_USER = os.getenv("WP_USER")
 WP_PASSWORD = os.getenv("WP_PASSWORD")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
 log("🚀 Inicio del proceso de publicación en WordPress.")
+
+def get_auth_headers():
+    """Devuelve los encabezados de autenticación correctos para WordPress."""
+    credentials = f"{WP_USER}:{WP_PASSWORD}"
+    encoded_credentials = base64.b64encode(credentials.encode()).decode()
+    return {
+        "Authorization": f"Basic {encoded_credentials}",
+        "Content-Type": "application/json"
+    }
 
 def extraer_articulo(url):
     """ Extrae el contenido del artículo original. """
@@ -58,25 +67,26 @@ def generar_contenido(titulo, contenido):
 
     return resultado
 
-def subir_imagen_a_wordpress(img_data):
-    """Sube una imagen a WordPress y devuelve su ID."""
-    log("📸 Subiendo imagen a WordPress...")
-    
-    # Codificar credenciales en Base64
-    credentials = f"{WP_USER}:{WP_PASSWORD}"
-    encoded_credentials = base64.b64encode(credentials.encode()).decode()
+def subir_imagen_a_wordpress(img_url):
+    """ Descarga y sube una imagen a WordPress, devolviendo su ID. """
+    if not img_url:
+        log("⚠️ No se encontró imagen para subir.")
+        return None
 
-    headers = {
-        "Authorization": f"Basic {encoded_credentials}"
-    }
-    
+    log(f"📸 Descargando imagen desde: {img_url}")
+    img_response = requests.get(img_url)
+    if img_response.status_code != 200:
+        log(f"❌ Error al descargar la imagen: {img_response.status_code}")
+        return None
+
+    log("📸 Subiendo imagen a WordPress...")
+    headers = get_auth_headers()
+
     files = {
-        "file": ("imagen.jpg", img_data, "image/jpeg")
+        "file": ("imagen.jpg", img_response.content, "image/jpeg")
     }
     
-    response = requests.post(f"{WP_URL}/wp-json/wp/v2/media",
-                             headers=headers,
-                             files=files)
+    response = requests.post(f"{WP_URL}/wp-json/wp/v2/media", headers=headers, files=files)
 
     log(f"📸 Respuesta de WordPress: {response.status_code} - {response.text}")
     if response.status_code == 201:
@@ -89,15 +99,12 @@ def publicar_en_wordpress(titulo, contenido, imagen_id=None):
     """ Publica el artículo en WordPress. """
     log(f"🚀 Publicando en WordPress: {titulo}")
 
-    headers = {
-        "Authorization": f"Basic {WP_USER}:{WP_PASSWORD}",
-        "Content-Type": "application/json"
-    }
+    headers = get_auth_headers()
     data = {
         "title": titulo,
         "content": contenido,
         "status": "publish",
-        "categories": [123],  # ID de la categoría 'cortasetos'
+        "categories": [17],  # ID de la categoría 'cortasetos'
     }
     if imagen_id:
         data["featured_media"] = imagen_id
@@ -115,7 +122,7 @@ for url in urls:
     datos = extraer_articulo(url)
     if datos:
         nuevo_contenido = generar_contenido(datos["titulo"], datos["contenido"])
-        imagen_id = subir_imagen_wp(datos["imagen"]) if datos["imagen"] else None
+        imagen_id = subir_imagen_a_wordpress(datos["imagen"]) if datos["imagen"] else None
         publicar_en_wordpress(datos["titulo"], nuevo_contenido, imagen_id)
 
 log("✅ Publicación finalizada.")

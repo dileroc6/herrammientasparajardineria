@@ -54,11 +54,20 @@ def limpiar_y_formatear_titulo(titulo):
     titulo_limpio = re.sub(r'^(H\d+:)\s*', '', titulo).strip()
     return titulo_limpio.capitalize()
 
+import re
+
 def limpiar_y_formatear_contenido(contenido):
-    """Convierte Markdown en HTML correctamente."""
+    """Convierte Markdown en HTML correctamente y separa el H1 del cuerpo del texto."""
     
-    # Convertir encabezados de Markdown en HTML correctamente
-    contenido = re.sub(r'^\s*(#{1,6})\s*(.*?)\s*$', 
+    # Extraer el título H1 si existe
+    match_h1 = re.match(r'^\s*#\s*(.+)', contenido)
+    titulo_h1 = f"<h1>{match_h1.group(1)}</h1>" if match_h1 else ""
+
+    # Eliminar el H1 del contenido para que no se repita
+    contenido = re.sub(r'^\s*#\s*.+\n', '', contenido, count=1)
+
+    # Convertir otros encabezados de Markdown a HTML
+    contenido = re.sub(r'^\s*(#{2,6})\s*(.*?)\s*$', 
                        lambda m: f"<h{len(m.group(1))}>{m.group(2)}</h{len(m.group(1))}>", 
                        contenido, 
                        flags=re.MULTILINE)
@@ -67,13 +76,14 @@ def limpiar_y_formatear_contenido(contenido):
     contenido = re.sub(r'\*\*(.*?)\*\*', r'<strong>\1</strong>', contenido)
 
     # Convertir saltos de línea dobles en párrafos
-    contenido = re.sub(r'\n\n+', '</p><p>', contenido)  # Divide en párrafos correctamente
-    contenido = f"<p>{contenido}</p>"  # Envuelve todo en <p> inicial y final
+    contenido = re.sub(r'\n\n+', '</p><p>', contenido)  
+    contenido = f"<p>{contenido}</p>"  # Envuelve todo en <p>
 
     # Formatear enlaces en formato [Texto](URL) a <a href="URL">Texto</a>
     contenido = re.sub(r'\[(.*?)\]\((https?://.*?)\)', r'<a href="\2">\1</a>', contenido)
 
-    return contenido
+    # Retornar el título separado del contenido
+    return titulo_h1 + contenido
 
 def generar_contenido(titulo, contenido):
     """ Usa ChatGPT para generar un artículo único y optimizado. """

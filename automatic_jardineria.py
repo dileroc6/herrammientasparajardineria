@@ -49,8 +49,9 @@ def extraer_articulo(url):
     return {"titulo": titulo, "contenido": contenido, "imagen": imagen}
 
 def limpiar_y_formatear_titulo(titulo):
-    """ Elimina 'Título:' y capitaliza correctamente el título. """
-    titulo_limpio = titulo.replace("Título:", "").strip()
+    """ Elimina los prefijos como 'H1:', 'H2:' y capitaliza correctamente el título. """
+    # Eliminar cualquier prefijo tipo H1:, H2:, etc.
+    titulo_limpio = re.sub(r'^(H\d+:)\s*', '', titulo).strip()
     return titulo_limpio.capitalize()
 
 def generar_contenido(titulo, contenido):

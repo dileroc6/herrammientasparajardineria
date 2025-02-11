@@ -67,7 +67,8 @@ def subir_imagen_a_wordpress(img_data):
     encoded_credentials = base64.b64encode(credentials.encode()).decode()
 
     headers = {
-        "Authorization": f"Basic {encoded_credentials}"
+        "Authorization": f"Basic {encoded_credentials}",
+        "Content-Disposition": "attachment; filename=imagen.jpg"
     }
     
     response = requests.post(f"{WP_URL}/wp-json/wp/v2/media",
@@ -75,7 +76,11 @@ def subir_imagen_a_wordpress(img_data):
                              files={"file": ("imagen.jpg", img_data, "image/jpeg")})
 
     log(f"📸 Respuesta de WordPress: {response.status_code} - {response.text}")
-    return response.json().get("id")
+    if response.status_code == 201:
+        return response.json().get("id")
+    else:
+        log(f"❌ Error al subir la imagen: {response.text}")
+        return None
 
 def publicar_en_wordpress(titulo, contenido, imagen_id=None):
     """ Publica el artículo en WordPress. """

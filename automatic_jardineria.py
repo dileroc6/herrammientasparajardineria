@@ -58,6 +58,8 @@ import re
 
 import re
 
+dimport re
+
 def limpiar_y_formatear_contenido(contenido):
     """Convierte Markdown en HTML correctamente, asegurando formato adecuado y capitalización correcta en títulos."""
     
@@ -67,7 +69,7 @@ def limpiar_y_formatear_contenido(contenido):
     # Extraer el título H1 si existe y asegurarse de que solo tenga mayúscula en la primera letra
     match_h1 = re.match(r'^\s*#\s*(.+)', contenido)
     if match_h1:
-        titulo_h1 = f"<h1>{match_h1.group(1).capitalize()}</h1>"
+        titulo_h1 = f"<h1>{match_h1.group(1).capitalize()}</h1>\n"
         contenido = re.sub(r'^\s*#\s*.+\n', '', contenido, count=1)  # Eliminar H1 del contenido
         print("\n✅ TÍTULO H1 EXTRAÍDO ✅")
         print(titulo_h1)
@@ -78,10 +80,10 @@ def limpiar_y_formatear_contenido(contenido):
     print("\n🔹 CONTENIDO SIN H1 🔹\n")
     print(contenido)
 
-    # Convertir encabezados Markdown a HTML asegurando mayúscula solo en la primera letra
+    # Convertir encabezados Markdown (#, ##, ###, ...) a etiquetas <h1>, <h2>, etc.
     def formatear_encabezados(match):
         nivel = len(match.group(1))  # Longitud de los #
-        texto = match.group(2).capitalize()  # Primera letra en mayúscula
+        texto = match.group(2).capitalize().strip()  # Capitalizar y eliminar espacios extras
         print(f"\n➡️ Transformando encabezado: {match.group(0)} → <h{nivel}>{texto}</h{nivel}>")
         return f"<h{nivel}>{texto}</h{nivel}>"
 

@@ -19,8 +19,6 @@ WP_USER = os.getenv("WP_USER")
 WP_PASSWORD = os.getenv("WP_PASSWORD")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
-log("🚀 Inicio del proceso de publicación en WordPress.")
-
 def get_auth_headers():
     """Devuelve los encabezados de autenticación correctos para WordPress."""
     credentials = f"{WP_USER}:{WP_PASSWORD}"
@@ -42,111 +40,77 @@ def extraer_articulo(url):
     imagen = imagen_tag["src"] if imagen_tag and "src" in imagen_tag.attrs else None
 
     log(f"✅ Título original: {titulo}")
-    log(f"📝 Contenido extraído: {contenido[:100]}...")  # Solo muestra los primeros 100 caracteres
+    log(f"📝 Contenido extraído: {contenido[:100]}...")
     log(f"🖼️ Imagen encontrada: {imagen}")
 
     return {"titulo": titulo, "contenido": contenido, "imagen": imagen}
 
 def limpiar_y_formatear_titulo(titulo):
-    """ Elimina 'Título:' y capitaliza correctamente el título. """
-    titulo_limpio = titulo.replace("Título:", "").strip()
-    return titulo_limpio.capitalize()
+    """ Limpia el título y lo capitaliza correctamente. """
+    return titulo.replace("Título:", "").strip().capitalize()
 
 def generar_contenido(titulo, contenido):
-    """ Usa ChatGPT para generar un artículo único y optimizado. """
+    """ Usa OpenAI para generar un artículo optimizado. """
     log(f"🤖 Generando contenido para: {titulo}")
-
+    
     client = openai.OpenAI(api_key=OPENAI_API_KEY)
-    prompt = f"""
-    Genera un artículo original y optimizado para SEO sobre {titulo}, utilizando únicamente la información proporcionada en {contenido}.
-
-    El artículo está destinado a un blog especializado en herramientas de jardinería y debe estar optimizado para buscadores. Para lograrlo:
-
-    - Usa solo la información del contenido de referencia, sin agregar datos externos.
-    - Redacta un texto estructurado con encabezados jerárquicos (H1, H2, H3) para mejorar la legibilidad y el SEO.
-    - Aplica técnicas de optimización SEO, incluyendo el uso natural de palabras clave relevantes.
-    - Utiliza listas, negritas y enlaces internos para mejorar la experiencia del usuario y la indexación en buscadores.
-    - Finaliza el artículo con un comentario propio que aporte valor, reflexión o contexto adicional sobre el tema.
-    - El objetivo es crear un contenido útil, bien estructurado y optimizado para SEO, sin desviarse del material de referencia, para mejorar el posicionamiento del blog y facilitar la aprobación en Google AdSense.
-    - Incluye en lo posible la fuente original del contenido.
-    """
+    prompt = f"Genera un artículo SEO sobre {titulo} basado en {contenido} con encabezados y optimización."
 
     response = client.chat.completions.create(
         model="gpt-4",
         messages=[
-            {"role": "system", "content": "Eres un asistente experto en redacción de artículos SEO."},
+            {"role": "system", "content": "Eres un asistente experto en SEO."},
             {"role": "user", "content": prompt}
         ]
     )
-
+    
     resultado = response.choices[0].message.content.strip()
-
-    # Separar el título del contenido
     lineas = resultado.split("\n")
-    nuevo_titulo = lineas[0].strip()  # Primera línea como título
-    nuevo_contenido = "\n".join(lineas[1:]).strip()  # Resto como contenido
+    nuevo_titulo = limpiar_y_formatear_titulo(lineas[0])
+    nuevo_contenido = "\n".join(lineas[1:]).strip()
 
-    # Limpiar y formatear el título generado
-    nuevo_titulo = limpiar_y_formatear_titulo(nuevo_titulo)
-
-    # Validar si la primera línea es un título correcto
-    if len(nuevo_titulo) < 10 or not any(c.isalpha() for c in nuevo_titulo):  
-        log("⚠️ El título generado no es válido, usando el original.")  
-        nuevo_titulo = limpiar_y_formatear_titulo(titulo)  
-        
-    log(f"🎯 Título final a publicar: {nuevo_titulo}")
-    log(f"📝 Contenido generado: {nuevo_contenido[:100]}...")  # Muestra los primeros 100 caracteres
-
+    if len(nuevo_titulo) < 10:
+        log("⚠️ Título inválido, usando el original.")
+        nuevo_titulo = limpiar_y_formatear_titulo(titulo)
+    
+    log(f"🎯 Título final: {nuevo_titulo}")
     return nuevo_titulo, nuevo_contenido
 
 def subir_imagen_a_wordpress(img_url):
-    """ Descarga y sube una imagen a WordPress, devolviendo su ID. """
+    """ Sube una imagen a WordPress y devuelve su ID. """
     if not img_url:
         log("⚠️ No se encontró imagen para subir.")
         return None
-
-    log(f"📸 Descargando imagen desde: {img_url}")
+    
+    log(f"📸 Descargando imagen: {img_url}")
     img_response = requests.get(img_url)
     if img_response.status_code != 200:
-        log(f"❌ Error al descargar la imagen: {img_response.status_code}")
+        log(f"❌ Error al descargar imagen: {img_response.status_code}")
         return None
-
+    
     log("📸 Subiendo imagen a WordPress...")
     headers = get_auth_headers()
-
-    files = {
-        "file": ("imagen.jpg", img_response.content, "image/jpeg")
-    }
-    
+    files = {"file": ("imagen.jpg", img_response.content, "image/jpeg")}
     response = requests.post(f"{WP_URL}/wp-json/wp/v2/media", headers=headers, files=files)
-
-    log(f"📸 Respuesta de WordPress: {response.status_code} - {response.text}")
+    
     if response.status_code == 201:
         return response.json().get("id")
     else:
-        log(f"❌ Error al subir la imagen: {response.text}")
+        log(f"❌ Error al subir imagen: {response.text}")
         return None
 
 def publicar_en_wordpress(titulo, contenido, imagen_id=None):
     """ Publica el artículo en WordPress. """
-    log(f"🚀 Publicando en WordPress: {titulo}")
-
+    log(f"🚀 Publicando: {titulo}")
     headers = get_auth_headers()
-    data = {
-        "title": titulo,  # Ahora usa el título corregido
-        "content": contenido,
-        "status": "publish",
-        "categories": [17],  # ID de la categoría 'cortasetos'
-    }
+    data = {"title": titulo, "content": contenido, "status": "publish", "categories": [17]}
     if imagen_id:
         data["featured_media"] = imagen_id
-
     response = requests.post(f"{WP_URL}/wp-json/wp/v2/posts", json=data, headers=headers)
-    
-    log(f"📢 Respuesta de WordPress: {response.status_code} - {response.text}")
+    log(f"📢 Respuesta de WordPress: {response.status_code}")
     return response.json()
 
-# Leer URLs desde lista_enlaces.txt
+# Procesar URLs desde lista_enlaces.txt
 with open("lista_enlaces.txt", "r") as file:
     urls = [line.strip() for line in file.readlines() if line.strip()]
 

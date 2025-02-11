@@ -52,7 +52,6 @@ def limpiar_y_formatear_contenido(contenido):
     """Convierte Markdown en HTML correctamente."""
     contenido = re.sub(r'\*\*(.*?)\*\*', r'<strong>\1</strong>', contenido)  # Negritas
     contenido = re.sub(r'\n\n+', '</p><p>', contenido)  # Párrafos
-    contenido = f"<p>{contenido}</p>"
     contenido = re.sub(r'\[(.*?)\]\((https?://.*?)\)', r'<a href="\2">\1</a>', contenido)  # Enlaces
     return contenido
 
@@ -64,7 +63,7 @@ def generar_contenido(titulo, contenido):
         client = openai.OpenAI(api_key=OPENAI_API_KEY)
         prompt = f"""
         Genera un artículo optimizado para SEO sobre "{titulo}" usando la información proporcionada.
-        - Usa etiquetas HTML a excepcion del titulo h1 (No debe llevar etiquetas el titulo de la entrada) para demas titulos H2 y/o H3, etc. si debe llevar)
+        - Usa etiquetas HTML para todos los titulos H1, H2 y/o H3, etc.)
         - NO incluyas el título en el contenido
         - Aplica técnicas SEO y palabras clave relevantes.
         - Incluye listas, negritas y enlaces internos.
@@ -88,9 +87,6 @@ def generar_contenido(titulo, contenido):
         lineas = resultado.split("\n")
         nuevo_titulo = limpiar_y_formatear_titulo(lineas[0])  # Asume que la primera línea es el título
         nuevo_contenido = limpiar_y_formatear_contenido("\n".join(lineas[1:]))  # Resto del contenido sin el título
-
-        # Agregar el título como <h1> separado del contenido
-        nuevo_contenido = f"<h1>{nuevo_titulo}</h1>\n{nuevo_contenido}"
 
         log(f"📝 Título final: {nuevo_titulo}")
         return nuevo_titulo, nuevo_contenido
@@ -120,29 +116,6 @@ def publicar_en_wordpress(titulo, contenido, imagen_id=None):
         log(f"❌ Error al publicar: {response.text}")
 
     return response.json()
-
-def publicar_en_wordpress(titulo, contenido, imagen_id=None):
-    """Publica el artículo en WordPress con su título correcto."""
-    log(f"🚀 Publicando en WordPress: {titulo}")
-
-    headers = get_auth_headers()
-    data = {
-        "title": titulo,  # Asegurar que el título se usa correctamente
-        "content": contenido,
-        "status": "publish"
-    }
-    if imagen_id:
-        data["featured_media"] = imagen_id
-
-    response = requests.post(f"{WP_URL}/wp-json/wp/v2/posts", json=data, headers=headers)
-
-    if response.status_code == 201:
-        log(f"✅ Publicado con éxito: {titulo}")
-    else:
-        log(f"❌ Error al publicar: {response.text}")
-
-    return response.json()
-
 
 with open("lista_enlaces.txt", "r") as file:
     urls = [line.strip() for line in file.readlines() if line.strip()]

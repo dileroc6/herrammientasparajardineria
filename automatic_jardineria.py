@@ -47,12 +47,29 @@ def extraer_articulo(url):
 
     return {"titulo": titulo, "contenido": contenido, "imagen": imagen}
 
+def limpiar_y_formatear_titulo(titulo):
+    """ Elimina 'Título:' y capitaliza correctamente el título. """
+    titulo_limpio = titulo.replace("Título:", "").strip()
+    return titulo_limpio.capitalize()
+
 def generar_contenido(titulo, contenido):
     """ Usa ChatGPT para generar un artículo único y optimizado. """
     log(f"🤖 Generando contenido para: {titulo}")
 
     client = openai.OpenAI(api_key=OPENAI_API_KEY)
-    prompt = f"Escribe un artículo SEO optimizado sobre {titulo}. Usa información valiosa basada en este contenido: {contenido}."
+    prompt = f"""
+    Genera un artículo original y optimizado para SEO sobre {titulo}, utilizando únicamente la información proporcionada en {contenido}.
+
+    El artículo está destinado a un blog especializado en herramientas de jardinería y debe estar optimizado para buscadores. Para lograrlo:
+
+    - Usa solo la información del contenido de referencia, sin agregar datos externos.
+    - Redacta un texto estructurado con encabezados jerárquicos (H1, H2, H3) para mejorar la legibilidad y el SEO.
+    - Aplica técnicas de optimización SEO, incluyendo el uso natural de palabras clave relevantes.
+    - Utiliza listas, negritas y enlaces internos para mejorar la experiencia del usuario y la indexación en buscadores.
+    - Finaliza el artículo con un comentario propio que aporte valor, reflexión o contexto adicional sobre el tema.
+    - El objetivo es crear un contenido útil, bien estructurado y optimizado para SEO, sin desviarse del material de referencia, para mejorar el posicionamiento del blog y facilitar la aprobación en Google AdSense.
+    - Incluye en lo posible la fuente original del contenido.
+    """
 
     response = client.chat.completions.create(
         model="gpt-4",
@@ -69,14 +86,15 @@ def generar_contenido(titulo, contenido):
     nuevo_titulo = lineas[0].strip()  # Primera línea como título
     nuevo_contenido = "\n".join(lineas[1:]).strip()  # Resto como contenido
 
+    # Limpiar y formatear el título generado
+    nuevo_titulo = limpiar_y_formatear_titulo(nuevo_titulo)
+
     # Validar si la primera línea es un título correcto
     if len(nuevo_titulo) < 10 or not any(c.isalpha() for c in nuevo_titulo):  
         log("⚠️ El título generado no es válido, usando el original.")  
-        nuevo_titulo = titulo  
-        log(f"🎯 Título final a publicar: {nuevo_titulo}")
-    else:
-        log(f"✅ Nuevo título generado: {nuevo_titulo}")
-
+        nuevo_titulo = limpiar_y_formatear_titulo(titulo)  
+        
+    log(f"🎯 Título final a publicar: {nuevo_titulo}")
     log(f"📝 Contenido generado: {nuevo_contenido[:100]}...")  # Muestra los primeros 100 caracteres
 
     return nuevo_titulo, nuevo_contenido

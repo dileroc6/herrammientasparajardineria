@@ -33,7 +33,7 @@ def generar_contenido(titulo, contenido):
                 {"role": "user", "content": prompt}
         ]
     )
-    return response["choices"][0]["message"]["content"]
+    return response.choices[0].message.content
 
 def subir_imagen_wp(imagen_url):
     """ Sube la imagen a WordPress y devuelve su ID. """

@@ -49,11 +49,21 @@ def limpiar_y_formatear_titulo(titulo):
     return titulo_limpio.capitalize()
 
 def limpiar_y_formatear_contenido(contenido):
-    """Convierte Markdown en HTML correctamente."""
+    """Convierte Markdown en HTML correctamente y ajusta títulos h2 y h3."""
     contenido = re.sub(r'\*\*(.*?)\*\*', r'<strong>\1</strong>', contenido)  # Negritas
     contenido = re.sub(r'\n\n+', '</p><p>', contenido)  # Párrafos
     contenido = re.sub(r'\[(.*?)\]\((https?://.*?)\)', r'<a href="\2">\1</a>', contenido)  # Enlaces
+
+    # Capitalizar los títulos H2 y H3
+    contenido = re.sub(r'<(h2|h3)>(.*?)</\1>', lambda match: f"<{match.group(1)}>{match.group(2).title()}</{match.group(1)}>", contenido)
+
     return contenido
+
+def capitalizar_titulos(match):
+    """Capitaliza solo la primera letra de cada palabra en títulos h2 y h3."""
+    texto = match.group(1)
+    return f"<{match.group(2)}>{texto.title()}</{match.group(2)}>"
+
 
 def generar_contenido(titulo, contenido):
     """Usa ChatGPT para generar un artículo único y optimizado con logs detallados."""

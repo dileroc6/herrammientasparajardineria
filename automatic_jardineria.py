@@ -106,9 +106,8 @@ def generar_contenido(titulo, contenido):
 def limpiar_y_formatear_contenido(contenido):
     """Convierte saltos de línea en párrafos y formatea correctamente los títulos y enlaces."""
     
-    # Asegurar que los encabezados estén bien formateados
-    contenido = re.sub(r'\n# (.*?)\n', r'<h2>\1</h2>\n', contenido)  # Convierte '# Título' en <h2>
-    contenido = re.sub(r'\n## (.*?)\n', r'<h3>\1</h3>\n', contenido)  # Convierte '## Subtítulo' en <h3>
+    # Convertir encabezados de Markdown en HTML correctamente
+    contenido = re.sub(r'^\s*(#{1,6})\s*(.*?)\s*$', lambda m: f"<h{len(m.group(1))}>{m.group(2)}</h{len(m.group(1))}>", contenido, flags=re.MULTILINE)
     
     # Convertir saltos de línea dobles en párrafos
     contenido = re.sub(r'\n\n+', r'</p><p>', contenido)  # Divide párrafos correctamente

@@ -56,7 +56,7 @@ def limpiar_y_formatear_contenido(contenido):
     contenido = re.sub(r'\[(.*?)\]\((https?://.*?)\)', r'<a href="\2">\1</a>', contenido)  # Enlaces
     return contenido
 
-ddef generar_contenido(titulo, contenido):
+def generar_contenido(titulo, contenido):
     """Usa ChatGPT para generar un artículo único y optimizado con logs detallados."""
     log(f"🤖 Iniciando generación de contenido para: {titulo}")
 

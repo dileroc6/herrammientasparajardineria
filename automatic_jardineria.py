@@ -55,16 +55,22 @@ def limpiar_y_formatear_titulo(titulo):
     return titulo_limpio.capitalize()
 
 def limpiar_y_formatear_contenido(contenido):
-    """Convierte saltos de línea en párrafos y formatea correctamente los títulos y enlaces."""
+    """Convierte Markdown en HTML correctamente."""
     
     # Convertir encabezados de Markdown en HTML correctamente
-    contenido = re.sub(r'^\s*(#{1,6})\s*(.*?)\s*$', lambda m: f"<h{len(m.group(1))}>{m.group(2)}</h{len(m.group(1))}>", contenido, flags=re.MULTILINE)
-    
+    contenido = re.sub(r'^\s*(#{1,6})\s*(.*?)\s*$', 
+                       lambda m: f"<h{len(m.group(1))}>{m.group(2)}</h{len(m.group(1))}>", 
+                       contenido, 
+                       flags=re.MULTILINE)
+
+    # Convertir **negritas** en <strong>negritas</strong>
+    contenido = re.sub(r'\*\*(.*?)\*\*', r'<strong>\1</strong>', contenido)
+
     # Convertir saltos de línea dobles en párrafos
-    contenido = re.sub(r'\n\n+', r'</p><p>', contenido)  # Divide párrafos correctamente
+    contenido = re.sub(r'\n\n+', '</p><p>', contenido)  # Divide en párrafos correctamente
     contenido = f"<p>{contenido}</p>"  # Envuelve todo en <p> inicial y final
-    
-    # Formatear enlaces si están en formato [Texto](URL)
+
+    # Formatear enlaces en formato [Texto](URL) a <a href="URL">Texto</a>
     contenido = re.sub(r'\[(.*?)\]\((https?://.*?)\)', r'<a href="\2">\1</a>', contenido)
 
     return contenido

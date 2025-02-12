@@ -77,6 +77,7 @@ def generar_contenido(titulo, contenido):
         - Incluye listas, negritas y enlaces internos.
         - Incluye links a la fuente si es necesario.
         - Concluye con un comentario propio de valor adicional.
+        - No menciones precios, enfocate en las características y beneficios.
         """
 
         log("📡 Enviando solicitud a OpenAI...")
@@ -143,7 +144,7 @@ def publicar_en_wordpress(titulo, contenido, imagen_id=None):
         "title": titulo,  # Asegurar que el título se usa correctamente
         "content": contenido,
         "status": "publish",
-        "categories": [17]  # Asigna la entrada a la categoría con ID 17
+        "categories": [22]  # Asigna la entrada a la categoría con ID 17
     }
     if imagen_id:
         data["featured_media"] = imagen_id

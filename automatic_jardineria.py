@@ -103,6 +103,36 @@ def generar_contenido(titulo, contenido):
     except Exception as e:
         log(f"❌ Error al generar contenido: {str(e)}")
         return titulo, f"{titulo}\n{contenido}"  # Devuelve el contenido con un H1 si hay error
+    
+def subir_imagen_a_wordpress(url_imagen):
+    """Descarga la imagen y la sube a WordPress como imagen destacada."""
+    log(f"🖼️ Descargando imagen desde: {url_imagen}")
+
+    try:
+        respuesta = requests.get(url_imagen, stream=True)
+        if respuesta.status_code != 200:
+            log(f"❌ Error al descargar la imagen: {respuesta.status_code}")
+            return None
+
+        nombre_archivo = os.path.basename(url_imagen)
+        headers = get_auth_headers()
+        headers["Content-Disposition"] = f'attachment; filename="{nombre_archivo}"'
+        headers["Content-Type"] = respuesta.headers["Content-Type"]
+
+        log(f"📤 Subiendo imagen {nombre_archivo} a WordPress...")
+        respuesta_wp = requests.post(f"{WP_URL}/wp-json/wp/v2/media", headers=headers, data=respuesta.content)
+
+        if respuesta_wp.status_code == 201:
+            imagen_id = respuesta_wp.json().get("id")
+            log(f"✅ Imagen subida con éxito, ID: {imagen_id}")
+            return imagen_id
+        else:
+            log(f"❌ Error al subir la imagen: {respuesta_wp.text}")
+            return None
+
+    except Exception as e:
+        log(f"❌ Error en la subida de imagen: {str(e)}")
+        return None
 
 def publicar_en_wordpress(titulo, contenido, imagen_id=None):
     """Publica el artículo en WordPress con su título correcto y asignado a la categoría con ID 17."""
